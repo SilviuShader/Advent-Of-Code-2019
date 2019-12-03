@@ -42,3 +42,5 @@ for i in range (0, 100):
 
     if found:
         break
+
+inputFile.close();

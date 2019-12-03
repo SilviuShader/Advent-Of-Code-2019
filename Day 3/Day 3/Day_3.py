@@ -167,3 +167,5 @@ while running:
                 DrawPoint(resultPoint1, (255, 255, 0))
                 DrawPoint(resultPoint2, (0, 0, 255))
     pygame.display.flip()
+
+inputFile.close()

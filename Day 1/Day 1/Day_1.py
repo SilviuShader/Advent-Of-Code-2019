@@ -36,3 +36,5 @@ masses = [int(x) for x in fileData]
 
 print (Solve1(masses))
 print (Solve2(masses))
+
+inputFile.close()
