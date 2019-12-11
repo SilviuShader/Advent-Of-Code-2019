@@ -95,7 +95,7 @@ destroyedCount = 0
 while foundVal == False:
 
     foundCoords = Detect(asteroidCoords, bestCoords, asteroidsMap)[1]
-    # sort the coords clocwise
+    # sort the coords clockwise
     # first we get the vectors from the asteroids to the base
     vectors = [RegularNormalize((a - bestCoords[0], b - bestCoords[1], (a, b))) for (a, b) in foundCoords]
     up = (-1, 0)
@@ -116,7 +116,7 @@ while foundVal == False:
 
         index += 1
 
-    # now that we have the first asteroid, we can use election sort for the other of other asteroids
+    # now that we have the first asteroid, we can use selection sort for the other of other asteroids
     aux = vectors[foundIndex]
     vectors[foundIndex] = vectors[0]
     vectors[0] = aux
