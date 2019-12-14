@@ -12,7 +12,6 @@ class IntCodeComputer:
         self.defaultCode = code
         self.runningCode = self.defaultCode.copy()
         self.instructionPointer = 0
-        self.inputQueue = queue.Queue()
         self.outputQueue = queue.Queue()
         self.relativeBase = 0
 
@@ -31,12 +30,10 @@ class IntCodeComputer:
         if reset == True:
             self.runningCode = self.defaultCode.copy()
             self.instructionPointer = 0
-            self.inputQueue = queue.Queue()
             self.outputQueue = queue.Queue()
             self.relativeBase = 0
 
-        for inAr in inputArray:
-            self.inputQueue.put(inAr)
+        inputIndex = 0
         
         while self.instructionPointer < len(self.runningCode):
             instruction = self.runningCode[self.instructionPointer] % 100;
@@ -89,15 +86,13 @@ class IntCodeComputer:
 
             elif instruction == 3:
 
-                if self.inputQueue.empty():
-                    return -1
-
                 a = self.AccessLocation(self.instructionPointer + 1)
 
                 if aMode == 2:
                     a = a + self.relativeBase
 
-                self.StoreLocation(a, self.inputQueue.get())
+                self.StoreLocation(a, inputArray[inputIndex])
+                inputIndex += 1
                 self.instructionPointer += 2
 
             elif instruction == 4:
@@ -164,6 +159,20 @@ def Render(screenMatrix):
         finalString += "\n"
     print (finalString, end = "\r")
 
+def GetBallX(screenMatrix):
+    for row in range(0, len(screenMatrix)):
+        for column in range(0, len(screenMatrix[i])):
+            if screenMatrix[row][column] == 4:
+                return column
+    return 0
+
+def GetPadX(screenMatrix):
+    for row in range(0, len(screenMatrix)):
+        for column in range(0, len(screenMatrix[i])):
+            if screenMatrix[row][column] == 3:
+                return column
+    return 0
+
 inputFile = open("input.txt", "r")
 
 code = [int(x) for x in inputFile.read().split(",")]
@@ -205,21 +214,27 @@ for i in range(0, len(screenMatrix)):
 
 cond = True
 iter = 0
+score = 0
 while cond:
-
-    if iter >= len(screenMatrix) * len(screenMatrix[0]):
-        sleep(0.5)
 
     cond2 = True
     exec = 0
-    inp = 0
+
+    if iter >= len(screenMatrix) * len(screenMatrix[0]):
+       sleep(0.001)
+
     while cond2 or iter < len(screenMatrix) * len(screenMatrix[0]):
         cond2 = True
         exec += 1
 
-        if keyboard.is_pressed('1'):
+        inp = 0
+        ballX = GetBallX(screenMatrix)
+        padX = GetPadX(screenMatrix)
+        if padX == ballX:
+            inp = 0
+        elif padX > ballX:
             inp = -1
-        if keyboard.is_pressed('2'):
+        else:
             inp = 1
 
         result1 = computer.Run([inp], False)
@@ -228,7 +243,7 @@ while cond:
             result3 = computer.Run([inp], False)
 
             if result1 == -1 and result2 == 0:
-                print(result3)
+                score = result3
             else:
                 screenMatrix[result2][result1] = result3
             
@@ -240,6 +255,8 @@ while cond:
             break
 
         Render(screenMatrix)
+
         iter += 1
 
+print(score)
 inputFile.close()
