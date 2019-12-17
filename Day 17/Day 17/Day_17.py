@@ -1,4 +1,5 @@
 import queue
+import re
 
 # I won't bother anymore
 class IntCodeComputer:
@@ -151,6 +152,12 @@ class IntCodeComputer:
 
         return self.outputQueue.get()
 
+class MoveInstruction:
+
+    def __init__(self, dir, length):
+        self.dir = dir
+        self.length = length
+
 def ValidPos(row, col):
     global mat
     
@@ -158,6 +165,75 @@ def ValidPos(row, col):
         return True
 
     return False
+
+def GetLeftVector(vector):
+    if vector[0] == -1:
+        return (0, -1)
+    elif vector[1] == -1:
+        return (1, 0)
+    elif vector[0] == 1:
+        return (0, 1)
+    elif vector[1] == 1:
+        return (-1, 0)
+
+def GetRightVector(vector):
+    return GetLeftVector(GetLeftVector(GetLeftVector(vector)))
+
+def GetMoveSequence():
+    global mat
+    
+    playerPos = (0, 0)
+    result = []
+
+    for row in range(len(mat)):
+        for col in range(len(mat[0])):
+            if mat[row][col] == "^":
+                playerPos = (row, col)
+
+    moveDir = (-1, 0)
+
+    fin = False
+    crtMove = MoveInstruction("", 0)
+    moved = 0
+    while not fin:
+
+        crtMove.length = moved
+        newPos = (playerPos[0] + moveDir[0], playerPos[1] + moveDir[1])
+
+        if (not ValidPos(newPos[0], newPos[1])) or mat[newPos[0]][newPos[1]] != "#":
+            result.append(crtMove)
+            moved = 0
+            leftVec = GetLeftVector(moveDir)
+            rightVec = GetRightVector(moveDir)
+
+            changedDir = False
+
+            testPos = (playerPos[0] + leftVec[0], playerPos[1] + leftVec[1])
+
+            if ValidPos(testPos[0], testPos[1]):
+                if mat[testPos[0]][testPos[1]] == "#":
+                    moveDir = leftVec
+                    changedDir = True
+                    crtMove = MoveInstruction("L", 0)
+                    newPos = testPos
+
+            testPos = (playerPos[0] + rightVec[0], playerPos[1] + rightVec[1])
+
+            if ValidPos(testPos[0], testPos[1]):
+                if mat[testPos[0]][testPos[1]] == "#":
+                    moveDir = rightVec
+                    changedDir = True
+                    crtMove = MoveInstruction("R", 0)
+                    newPos = testPos
+
+            if not changedDir:
+                fin = True
+                       
+        playerPos = newPos
+        moved += 1
+
+    return result
+
 
 inputFile = open("input.txt", "r")
 
@@ -219,8 +295,77 @@ for row in range(len(mat)):
                 printString += "#"
         else:
             printString += mat[row][col]
-    print(printString)
+    #print(printString)
 
 print(result)
+
+moveSequence = GetMoveSequence()
+for seq in moveSequence:
+    pass
+
+seqString = ""
+for i in range(1, len(moveSequence)):
+    seqString += moveSequence[i].dir
+    seqString += str(moveSequence[i].length)
+
+# print (seqString)
+
+# my results, good enough to manually send data to the robot
+'''
+R4L12L8R4 L8R10R10R6 R4L12L8R4 R4R10L12 R4L12L8R4 L8R10R10R6 R4L12L8R4 R4R10L12 L8R10R10R6 R4R10L12
+'''
+
+A = "R,4,L,12,L,8,R,4\n"
+B = "L,8,R,10,R,10,R,6\n"
+C = "R,4,R,10,L,12\n"
+
+order = "A,B,A,C,A,B,A,C,B,C\n"
+
+inputs = [ord(x) for x in order]
+inputs.extend([ord(x) for x in A])
+inputs.extend([ord(x) for x in B])
+inputs.extend([ord(x) for x in C])
+inputs.extend([ord("n"), 10])
+
+intcode[0] = 2
+
+#reset the computer
+newComputer = IntCodeComputer(intcode)
+result = newComputer.Run(inputs, False)
+prevRes = result
+while result != None:
+    prevRes = result
+    result = newComputer.Run(inputs, False)
+
+print (prevRes)
+
+# this was an attempt, I won't bother making this work
+'''
+index = 0
+stop = False
+while index < len(seqString) and not stop:
+    
+    prevSubstrings = []
+    for j in range(index + 1, len(seqString)):
+        rng = (index, j)
+        substr = seqString[index : j + 1]
+        substrings = re.findall(substr, seqString)
+        accumDiff = 1
+
+        if len(substrings) == 1 or len(substrings[0]) > 20:
+            index = j - accumDiff - 1
+            #if len(prevSubstrings) == 0:
+                #stop = True
+                
+            print (prevSubstrings)
+            break
+
+        if substrings[0][len(substrings[0])-1].isdigit():
+            prevSubstrings = substrings
+            accumDiff += 1
+        else:
+            accumDiff = 1
+    index += 1
+'''
 
 inputFile.close()
